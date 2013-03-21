@@ -1,8 +1,7 @@
 package com.vulcaninformatics.p00;
 
-import java.util.Arrays;
-import java.util.Random;
 
+import java.util.Random;
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -114,6 +113,7 @@ public class Sprite {
 		return x2 > x && x2 < x + width && y2 > y && y2 < y + height;
 	}
 
+	// ISSUE #2
 	public boolean isCollision(PointF p) {
 		double distance = Math.sqrt(Math.pow(Math.abs(p.x - this.pos.x), 2)
 				+ Math.pow(Math.abs(p.y - this.pos.y), 2));

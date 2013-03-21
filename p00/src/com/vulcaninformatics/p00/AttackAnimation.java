@@ -1,22 +1,16 @@
 package com.vulcaninformatics.p00;
 
 
-import java.util.List;
-
-
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.Rect;
-import android.provider.SyncStateContract.Columns;
 
 
 @SuppressLint("DrawAllocation")
 public class AttackAnimation {
 
-	private final String TAG = getClass().getSimpleName();
 	private int currentFrame = 0;
 	private static final int BMP_ROWS = 1;
 	private static final int BMP_COLUMNS = 4;
@@ -55,6 +49,7 @@ public class AttackAnimation {
 		this.pos.y = y + this.height / 2;
 	}
 
+	// ISSUE #1
 	public void onDraw(Canvas canvas) {
 		update();
 
