@@ -28,8 +28,6 @@ public class MapView extends View implements OnTouchListener {
 	Bitmap bitmap;
 	Bitmap locationMarker;
 	Bitmap defaultBitmap;
-	Bitmap figur;
-	Bitmap figur2;
 	Paint p = new Paint();
 	boolean done = false;
 	boolean alternate = false;
@@ -46,9 +44,6 @@ public class MapView extends View implements OnTouchListener {
 		defaultBitmap = BitmapFactory.decodeResource(getResources(),
 				R.drawable.blankmap);
 
-		figur = BitmapFactory.decodeResource(getResources(), R.drawable.figur);
-		figur2 = BitmapFactory
-				.decodeResource(getResources(), R.drawable.figur2);
 		
 	}
 
@@ -101,7 +96,7 @@ public class MapView extends View implements OnTouchListener {
 		int tmpX = 0;
 		int tmpY = 0;
 
-		if (info[0] != null) {
+		if (info[0] != null && info[1] != null && info[2] != null && info[3] != null) {
 			canvas.drawBitmap(info[0], 0, 0, p);
 
 			canvas.drawBitmap(info[1], 256, 0, p);
@@ -124,18 +119,7 @@ public class MapView extends View implements OnTouchListener {
 					.show();
 		}
 
-		if (alternate) {
-			if (figur != null) {
-				canvas.drawBitmap(figur, getWidth() / 2, getHeight() / 2, p);
-				alternate = false;
-			}
-		} else {
-			if (figur2 != null) {
-				canvas.drawBitmap(figur2, getWidth() / 2, getHeight() / 2, p);
-				alternate = true;
-			}
-		}
-
+		
 	}
 
 	public static String getTileNumber(final double lat, final double lon,
