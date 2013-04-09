@@ -3,4 +3,4 @@ p00
 
 Project00
 
-Smartphone-Game virtual reality RPG using OpenStreetMap data.
+Smartphone-Game: augmented reality RPG using OpenStreetMap data.
