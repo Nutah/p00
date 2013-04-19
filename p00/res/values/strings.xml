@@ -6,5 +6,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_mainmap">MainActivity</string>
     <string name="start">Start</string>
-
+	<string name="api_key">none</string>
+	
 </resources>

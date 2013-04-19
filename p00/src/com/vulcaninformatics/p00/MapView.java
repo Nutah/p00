@@ -6,11 +6,13 @@ package com.vulcaninformatics.p00;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -29,22 +31,29 @@ public class MapView extends View implements OnTouchListener {
 	Bitmap locationMarker;
 	Bitmap defaultBitmap;
 	Paint p = new Paint();
-	boolean done = false;
+	boolean doneDownload = false;
 	boolean alternate = false;
 
 	Bitmap[] info = new Bitmap[4];
+
+	Bitmap[][] bufferBitmap = new Bitmap[3][3];
+	Point bufferBitmapPoint[][] = new Point[3][3];
+	String bufferBitmapUrl[][] = new String[3][3];
+
+	final int zoom = 18;
+
+	// test data. location is University of Stuttgart, CS Department
+	double latTest = 48.744783;
+	double lonTest = 9.106451;
 
 	public MapView(Context context) {
 		super(context);
 		setFocusable(true);
 		setFocusableInTouchMode(true);
-		
-		// this.setOnTouchListener(this);
 
 		defaultBitmap = BitmapFactory.decodeResource(getResources(),
 				R.drawable.blankmap);
 
-		
 	}
 
 	/*
@@ -66,44 +75,56 @@ public class MapView extends View implements OnTouchListener {
 		String untenlinks = "http://tile.openstreetmap.org/18/137702/90308.png";
 		String untenrechts = "http://tile.openstreetmap.org/18/137703/90308.png";
 		String addy[] = { obenlinks, obenrechts, untenlinks, untenrechts };
-		if (!done) {
-			for (int i = 0; i < addy.length; i++) {
 
-				try {
-					URL url = new URL(addy[i]);
-					HttpURLConnection conn = (HttpURLConnection) url
-							.openConnection();
-					conn.connect(); // Connect to URL
-					InputStream is = conn.getInputStream();
-					info[i] = BitmapFactory.decodeStream(is); // Download from
-																// URL as bitmap
-					is.close(); // Close connection
+		fillAll(latTest, lonTest, zoom);
 
-				} catch (Exception e) {
-					Log.i(TAG, "onTouchEvent exception");
+		if (!doneDownload) {
+			for (int i = 0; i < 3; i++) {
+				for (int k = 0; k < 3; k++) {
+					try {
+						URL url = new URL(bufferBitmapUrl[i][k]);
+						HttpURLConnection conn = (HttpURLConnection) url
+								.openConnection();
+						conn.connect(); // Connect to URL
+						InputStream is = conn.getInputStream();
+						bufferBitmap[i][k] = BitmapFactory.decodeStream(is); // Download
+																	// from
+																	// URL as
+																	// bitmap
+						is.close(); // Close connection
+
+					} catch (Exception e) {
+						Log.i(TAG, "onTouchEvent exception");
+					}
 				}
 			}
 		}
-		done = true;
+		doneDownload = true;
 		invalidate();
+
 		return true;
 	}
 
 	@Override
 	protected void onDraw(Canvas canvas) {
-		// canvas.drawBitmap(defaultBitmap, null, p);
 
 		int tmpX = 0;
 		int tmpY = 0;
 
-		if (info[0] != null && info[1] != null && info[2] != null && info[3] != null) {
-			canvas.drawBitmap(info[0], 0, 0, p);
-
-			canvas.drawBitmap(info[1], 256, 0, p);
-
-			canvas.drawBitmap(info[2], 0, 256, p);
-
-			canvas.drawBitmap(info[3], 256, 256, p);
+		if (doneDownload) {
+			//TOP
+			canvas.drawBitmap(bufferBitmap[0][0], 256*0, 256*0, p);
+			canvas.drawBitmap(bufferBitmap[0][1], 256*1, 256*0, p);
+			canvas.drawBitmap(bufferBitmap[0][2], 256*2, 256*0, p);
+			//CENTRAL
+			canvas.drawBitmap(bufferBitmap[1][0], 256*0, 256*1, p);
+			canvas.drawBitmap(bufferBitmap[1][1], 256*1, 256*1, p);
+			canvas.drawBitmap(bufferBitmap[1][2], 256*2, 256*1, p);
+			//BOTTOM
+			canvas.drawBitmap(bufferBitmap[2][0], 256*0, 256*2, p);
+			canvas.drawBitmap(bufferBitmap[2][1], 256*1, 256*2, p);
+			canvas.drawBitmap(bufferBitmap[2][2], 256*2, 256*2, p);
+			
 		} else if (defaultBitmap != null) {
 			for (int i = 0; i < 5; i++) {
 				for (int j = 0; j < 5; j++) {
@@ -119,7 +140,23 @@ public class MapView extends View implements OnTouchListener {
 					.show();
 		}
 
-		
+	}
+
+	/**
+	 * Fills all the buffers with the required data given the correct
+	 * parameters.
+	 * 
+	 * @param lat
+	 *            Latitude value of current center position.
+	 * @param lon
+	 *            Longitude value of current center position.
+	 * @param zoom
+	 *            Default zoom level = 18.
+	 */
+	private void fillAll(final double lat, final double lon, final int zoom) {
+		double result[] = getTileNumberDouble(lat, lon, zoom);
+		fillBufferBitmapPoint(result);
+		fillBufferBitmapUrl(bufferBitmapPoint, zoom);
 	}
 
 	public static String getTileNumber(final double lat, final double lon,
@@ -134,4 +171,103 @@ public class MapView extends View implements OnTouchListener {
 		return ("" + zoom + "/" + xtile + "/" + ytile);
 	}
 
+	/**
+	 * Transforms longitude and latitude in the decimaldegree format into
+	 * corresponding xtile and ytile values.
+	 * 
+	 * @param lat
+	 *            Latitude value. e.g. 9.106451
+	 * @param lon
+	 *            Longitude value. e.g. 48.744783
+	 * @param zoom
+	 *            Default zoom value: 18. Ranges from 1-18 (18 being closest)
+	 * @return
+	 */
+	public double[] getTileNumberDouble(final double lat, final double lon,
+			final int zoom) {
+		int xtile = (int) Math.floor((lon + 180) / 360 * (1 << zoom));
+		int ytile = (int) Math
+				.floor((1 - Math.log(Math.tan(Math.toRadians(lat)) + 1
+						/ Math.cos(Math.toRadians(lat)))
+						/ Math.PI)
+						/ 2 * (1 << zoom));
+
+		double[] res = { xtile, ytile, zoom };
+		return res;
+	}
+
+	/**
+	 * Returns given input into a string which can be used for building a valid
+	 * URL.
+	 * 
+	 * @param input
+	 *            Should be {xtile,ytile,zoom}.
+	 * @return "zoom/xtile/ytile"
+	 */
+	public static String getTileDoubleToString(double[] input) {
+		if (input != null)
+			return ("" + input[2] + "/" + input[0] + "/" + input[1]);
+		else
+			return null;
+	}
+
+	/**
+	 * Fills bufferBitmapPoint with the values for xtile and ytile for the url
+	 * http://tile.openstreetmap.org/zoom/xtile/ytile.png
+	 * 
+	 * @param input
+	 *            Requires output of getTileNumberDouble() as input.
+	 */
+	private void fillBufferBitmapPoint(double[] input) {
+		int x = (int) input[0];
+		int y = (int) input[1];
+
+		// TOP
+		bufferBitmapPoint[0][0] = new Point(x - 1, y - 1);
+		bufferBitmapPoint[0][1] = new Point(x, y - 1);
+		bufferBitmapPoint[0][2] = new Point(x + 1, y - 1);
+		// CENTRAL
+		bufferBitmapPoint[1][0] = new Point(x - 1, y);
+		bufferBitmapPoint[1][1] = new Point(x, y);
+		bufferBitmapPoint[1][2] = new Point(x + 1, y);
+		// BOTTOM
+		bufferBitmapPoint[2][0] = new Point(x - 1, y + 1);
+		bufferBitmapPoint[2][1] = new Point(x, y + 1);
+		bufferBitmapPoint[2][2] = new Point(x + 1, y + 1);
+
+		fillBufferBitmapUrl(bufferBitmapPoint, zoom);
+	}
+
+	/**
+	 * Fills bufferBitmapUrl with the required URLs
+	 * http://tile.openstreetmap.org/zoom/xtile/ytile.png
+	 * 
+	 * @param input
+	 *            Requires the output of fillBufferBitmapPoint() as input.
+	 * @param zoom
+	 *            Zoom level. Default: 18
+	 */
+	private void fillBufferBitmapUrl(Point[][] input, int zoom) {
+		// TOP
+		bufferBitmapUrl[0][0] = "http://tile.openstreetmap.org/" + zoom + "/"
+				+ input[0][0].x + "/" + input[0][0].y + ".png";
+		bufferBitmapUrl[0][1] = "http://tile.openstreetmap.org/" + zoom + "/"
+				+ input[0][1].x + "/" + input[0][1].y + ".png";
+		bufferBitmapUrl[0][2] = "http://tile.openstreetmap.org/" + zoom + "/"
+				+ input[0][2].x + "/" + input[0][2].y + ".png";
+		// CENTRAL
+		bufferBitmapUrl[1][0] = "http://tile.openstreetmap.org/" + zoom + "/"
+				+ input[1][0].x + "/" + input[1][0].y + ".png";
+		bufferBitmapUrl[1][1] = "http://tile.openstreetmap.org/" + zoom + "/"
+				+ input[1][1].x + "/" + input[1][1].y + ".png";
+		bufferBitmapUrl[1][2] = "http://tile.openstreetmap.org/" + zoom + "/"
+				+ input[1][2].x + "/" + input[1][2].y + ".png";
+		// BOTTOM
+		bufferBitmapUrl[2][0] = "http://tile.openstreetmap.org/" + zoom + "/"
+				+ input[2][0].x + "/" + input[2][0].y + ".png";
+		bufferBitmapUrl[2][1] = "http://tile.openstreetmap.org/" + zoom + "/"
+				+ input[2][1].x + "/" + input[2][1].y + ".png";
+		bufferBitmapUrl[2][2] = "http://tile.openstreetmap.org/" + zoom + "/"
+				+ input[2][2].x + "/" + input[2][2].y + ".png";
+	}
 }
