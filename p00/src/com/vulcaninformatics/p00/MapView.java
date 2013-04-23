@@ -39,8 +39,11 @@ public class MapView extends View implements OnTouchListener {
 	Bitmap[][] bufferBitmap = new Bitmap[3][3];
 	Point bufferBitmapPoint[][] = new Point[3][3];
 	String bufferBitmapUrl[][] = new String[3][3];
+	BoundingBox bufferBitmapBBox[][] = new BoundingBox[3][3];
 
-	final int zoom = 18;
+	final int ZOOM = 18;
+	final int BUFFER_SIZE = 3;
+	final int PICTURE_SIZE = 5;
 
 	// test data. location is University of Stuttgart, CS Department
 	double latTest = 48.744783;
@@ -76,7 +79,7 @@ public class MapView extends View implements OnTouchListener {
 		String untenrechts = "http://tile.openstreetmap.org/18/137703/90308.png";
 		String addy[] = { obenlinks, obenrechts, untenlinks, untenrechts };
 
-		fillAll(latTest, lonTest, zoom);
+		fillAll(latTest, lonTest, ZOOM);
 
 		if (!doneDownload) {
 			for (int i = 0; i < 3; i++) {
@@ -88,9 +91,9 @@ public class MapView extends View implements OnTouchListener {
 						conn.connect(); // Connect to URL
 						InputStream is = conn.getInputStream();
 						bufferBitmap[i][k] = BitmapFactory.decodeStream(is); // Download
-																	// from
-																	// URL as
-																	// bitmap
+						// from
+						// URL as
+						// bitmap
 						is.close(); // Close connection
 
 					} catch (Exception e) {
@@ -112,22 +115,31 @@ public class MapView extends View implements OnTouchListener {
 		int tmpY = 0;
 
 		if (doneDownload) {
-			//TOP
-			canvas.drawBitmap(bufferBitmap[0][0], 256*0, 256*0, p);
-			canvas.drawBitmap(bufferBitmap[0][1], 256*1, 256*0, p);
-			canvas.drawBitmap(bufferBitmap[0][2], 256*2, 256*0, p);
-			//CENTRAL
-			canvas.drawBitmap(bufferBitmap[1][0], 256*0, 256*1, p);
-			canvas.drawBitmap(bufferBitmap[1][1], 256*1, 256*1, p);
-			canvas.drawBitmap(bufferBitmap[1][2], 256*2, 256*1, p);
-			//BOTTOM
-			canvas.drawBitmap(bufferBitmap[2][0], 256*0, 256*2, p);
-			canvas.drawBitmap(bufferBitmap[2][1], 256*1, 256*2, p);
-			canvas.drawBitmap(bufferBitmap[2][2], 256*2, 256*2, p);
-			
+			// TOP
+			canvas.drawBitmap(bufferBitmap[0][0], 256 * 0, 256 * 0, p);
+			Log.i(TAG, "bufferBitmapBBox[0][0] north: " + bufferBitmapBBox[0][0].north + " east: " + bufferBitmapBBox[0][0].east + " south: " + bufferBitmapBBox[0][0].south + " west: " + bufferBitmapBBox[0][0].west);
+			canvas.drawBitmap(bufferBitmap[0][1], 256 * 1, 256 * 0, p);
+			Log.i(TAG, "bufferBitmapBBox[0][1] north: " + bufferBitmapBBox[0][1].north + " east: " + bufferBitmapBBox[0][1].east + " south: " + bufferBitmapBBox[0][1].south + " west: " + bufferBitmapBBox[0][1].west);
+			canvas.drawBitmap(bufferBitmap[0][2], 256 * 2, 256 * 0, p);
+			Log.i(TAG, "bufferBitmapBBox[0][2] north: " + bufferBitmapBBox[0][2].north + " east: " + bufferBitmapBBox[0][2].east + " south: " + bufferBitmapBBox[0][2].south + " west: " + bufferBitmapBBox[0][2].west);
+			// CENTRAL
+			canvas.drawBitmap(bufferBitmap[1][0], 256 * 0, 256 * 1, p);
+			Log.i(TAG, "bufferBitmapBBox[1][0] north: " + bufferBitmapBBox[1][0].north + " east: " + bufferBitmapBBox[1][0].east + " south: " + bufferBitmapBBox[1][0].south + " west: " + bufferBitmapBBox[1][0].west);
+			canvas.drawBitmap(bufferBitmap[1][1], 256 * 1, 256 * 1, p);
+			Log.i(TAG, "bufferBitmapBBox[1][1] north: " + bufferBitmapBBox[1][1].north + " east: " + bufferBitmapBBox[1][1].east + " south: " + bufferBitmapBBox[1][1].south + " west: " + bufferBitmapBBox[1][1].west);
+			canvas.drawBitmap(bufferBitmap[1][2], 256 * 2, 256 * 1, p);
+			Log.i(TAG, "bufferBitmapBBox[1][2] north: " + bufferBitmapBBox[1][2].north + " east: " + bufferBitmapBBox[1][2].east + " south: " + bufferBitmapBBox[1][2].south + " west: " + bufferBitmapBBox[1][2].west);
+			// BOTTOM
+			canvas.drawBitmap(bufferBitmap[2][0], 256 * 0, 256 * 2, p);
+			Log.i(TAG, "bufferBitmapBBox[2][0] north: " + bufferBitmapBBox[2][0].north + " east: " + bufferBitmapBBox[2][0].east + " south: " + bufferBitmapBBox[2][0].south + " west: " + bufferBitmapBBox[2][0].west);
+			canvas.drawBitmap(bufferBitmap[2][1], 256 * 1, 256 * 2, p);
+			Log.i(TAG, "bufferBitmapBBox[2][1] north: " + bufferBitmapBBox[2][1].north + " east: " + bufferBitmapBBox[2][1].east + " south: " + bufferBitmapBBox[2][1].south + " west: " + bufferBitmapBBox[2][1].west);
+			canvas.drawBitmap(bufferBitmap[2][2], 256 * 2, 256 * 2, p);
+			Log.i(TAG, "bufferBitmapBBox[2][2] north: " + bufferBitmapBBox[2][2].north + " east: " + bufferBitmapBBox[2][2].east + " south: " + bufferBitmapBBox[2][2].south + " west: " + bufferBitmapBBox[2][2].west);
+
 		} else if (defaultBitmap != null) {
-			for (int i = 0; i < 5; i++) {
-				for (int j = 0; j < 5; j++) {
+			for (int i = 0; i < PICTURE_SIZE; i++) {
+				for (int j = 0; j < PICTURE_SIZE; j++) {
 					canvas.drawBitmap(defaultBitmap, tmpX, tmpY, p);
 					tmpX += 72;
 				}
@@ -235,7 +247,8 @@ public class MapView extends View implements OnTouchListener {
 		bufferBitmapPoint[2][1] = new Point(x, y + 1);
 		bufferBitmapPoint[2][2] = new Point(x + 1, y + 1);
 
-		fillBufferBitmapUrl(bufferBitmapPoint, zoom);
+		fillBufferBitmapUrl(bufferBitmapPoint, ZOOM);
+		fillBufferBitmapBBox(bufferBitmapPoint);
 	}
 
 	/**
@@ -270,4 +283,47 @@ public class MapView extends View implements OnTouchListener {
 		bufferBitmapUrl[2][2] = "http://tile.openstreetmap.org/" + zoom + "/"
 				+ input[2][2].x + "/" + input[2][2].y + ".png";
 	}
+
+	/**
+	 * Fills up the bufferBitmapBBox with BoundingBoxes and requires
+	 * bufferBitmapPoint to be filled with correct data.
+	 * 
+	 * @param input
+	 *            3x3 point buffer with x- and ytile values. Use
+	 *            fillBufferBitmapPoint() to get the required results.
+	 */
+	private void fillBufferBitmapBBox(Point[][] input) {
+		for (int i = 0; i < BUFFER_SIZE; i++) {
+			for (int k = 0; k < BUFFER_SIZE; k++) {
+				bufferBitmapBBox[i][k] = tile2boundingBox(input[i][k].x,
+						input[i][k].y, ZOOM);
+			}
+		}
+	}
+
+	class BoundingBox {
+		double north;
+		double south;
+		double east;
+		double west;
+	}
+
+	BoundingBox tile2boundingBox(final int x, final int y, final int zoom) {
+		BoundingBox bb = new BoundingBox();
+		bb.north = tile2lat(y, zoom);
+		bb.south = tile2lat(y + 1, zoom);
+		bb.west = tile2lon(x, zoom);
+		bb.east = tile2lon(x + 1, zoom);
+		return bb;
+	}
+
+	static double tile2lon(int x, int z) {
+		return x / Math.pow(2.0, z) * 360.0 - 180;
+	}
+
+	static double tile2lat(int y, int z) {
+		double n = Math.PI - (2.0 * Math.PI * y) / Math.pow(2.0, z);
+		return Math.toDegrees(Math.atan(Math.sinh(n)));
+	}
+
 }
